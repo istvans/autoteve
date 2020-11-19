@@ -31,15 +31,18 @@ def _dump_a_page_to_file(page: PageType, file_name: str):
         dump_file.write(_page_text(page))
 
 
-def _mail_error(cfg: dict, error_message: str, subject: str, page: PageType):
-    # Create a secure SSL context
+def _mail_error(cfg: dict, error_message: str, subject: str, page: PageType = None):
+    """Send an error email message according to `cfg`"""
     context = ssl.create_default_context()
     sender = cfg["sender"]
 
     with smtplib.SMTP_SSL("smtp.gmail.com", port=465, context=context) as server:
         server.login(sender, cfg["pass"])
         msg = EmailMessage()
-        msg.set_content("{}\n\n{}".format(error_message, _page_text(page)))
+        if page is None:
+            msg.set_content(error_message)
+        else:
+            msg.set_content("{}\n\n{}".format(error_message, _page_text(page)))
         msg["Subject"] = subject
         msg["From"] = sender
         msg["To"] = cfg["recipient"]
@@ -266,7 +269,15 @@ if __name__ == "__main__":
     args = parse_args()
     config = toml.load(args.config)
 
-    teve = Teve(config)
-    with teve:
-        teve.etet()
-        teve.tanit()
+    try:
+        teve = Teve(config)
+        with teve:
+            teve.etet()
+            teve.tanit()
+    except Exception as exc:
+        _mail_error(
+            config["mail"],
+            "Ismeretlen fatálas hiba történt!!!",
+            "Elpusztult az egész!!! ÁÁÁÁ!!!\n\n{}".format(exc)
+        )
+        raise
