@@ -111,7 +111,7 @@ def _parse_login_status(response: PageType):
 
 
 def _parse_teach_success(response: PageType):
-    teach_success_pattern = "A tevédet ma már tanítottad"
+    teach_success_pattern = "[mM]a már tanítottad"
     return re.search(teach_success_pattern, _page_text(response))
 
 

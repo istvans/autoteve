@@ -2,7 +2,7 @@
 #==============================================================================
 # Imports
 #==============================================================================
-. $HOME/.bash_envars  # import AUTOTEVE_CFG, AUTOTEVE_LOG
+. $HOME/.bash_envars  # import AUTOTEVE_SRC_CFG, AUTOTEVE_LOG
 [ $? -ne 0 ] && exit 41
 . $HOME/.bash_functions
 [ $? -ne 0 ] && exit 42
@@ -12,4 +12,5 @@
 #==============================================================================
 #==============================================================================
 AUTOTEVE_DIR=$(dirname $0)
-/usr/bin/python3.9 -m pipenv run python -u $AUTOTEVE_DIR/main.py -c $AUTOTEVE_CFG >$AUTOTEVE_LOG 2>&1
+export PIPENV_PIPFILE=$AUTOTEVE_SRC_DIR/Pipfile
+/usr/bin/python3.9 -m pipenv run python -u $AUTOTEVE_SRC_DIR/main.py -c $AUTOTEVE_CFG >$AUTOTEVE_LOG 2>&1
