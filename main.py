@@ -1,6 +1,8 @@
 # coding=utf-8
 import argparse
 from email.message import EmailMessage
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 from getpass import getpass
 import io
 import re
@@ -32,17 +34,29 @@ def _dump_a_page_to_file(page: PageType, file_name: str):
 
 
 def _mail_error(cfg: dict, error_message: str, subject: str, page: PageType = None):
-    """Send an error email message according to `cfg`"""
+    """Send an error email message according to `cfg`.
+
+    If `page` is not None, its content is attached to the mail and its url is added to the end
+    of the `error_message`.
+    """
     context = ssl.create_default_context()
     sender = cfg["sender"]
 
     with smtplib.SMTP_SSL("smtp.gmail.com", port=465, context=context) as server:
         server.login(sender, cfg["pass"])
-        msg = EmailMessage()
-        if page is None:
-            msg.set_content(error_message)
+
+        msg = MIMEMultipart()
+
+        if page is not None:
+            content = "{}<br/>{}".format(error_message, page.url)
+            msg.attach(MIMEText(content, "html"))
+
+            attachment = MIMEText(_page_text(page))
+            attachment.add_header("Content-Disposition", "attachment; filename=\"error.html\"")
+            msg.attach(attachment)
         else:
-            msg.set_content("{}\n\n{}".format(error_message, _page_text(page)))
+            msg.attach(MIMEText(error_message))
+
         msg["Subject"] = subject
         msg["From"] = sender
         msg["To"] = cfg["recipient"]
@@ -51,7 +65,8 @@ def _mail_error(cfg: dict, error_message: str, subject: str, page: PageType = No
 
 
 class TeveClubLink:
-    """The hattrick link abstraction"""
+    """The Teve link abstraction"""
+    # TODO extract this to its own lib
 
     HEADER = {
         "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36"
