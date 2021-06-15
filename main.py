@@ -250,8 +250,18 @@ class Teve:
         if success:
             print("OK")
         else:
+            # let's try again
             self._print_page_error(response)
-            _mail_error(self.mail_cfg, "Nem sikerült a tanítás!", "Automatikus tanítási fennforgattyú!", response)
+            print("sosenem adjad fel!")
+
+            # TODO REFACTOR
+            response = TeveClubLink.request(TeveClubLink.TEACH_LINK, method="post", data=form_data)
+            success = _parse_teach_success(response)
+            if success:
+                print("OK")
+            else:
+                self._print_page_error(response)
+                _mail_error(self.mail_cfg, "Nem sikerült a tanítás!", "Automatikus tanítási fennforgattyú!", response)
 
     @staticmethod
     def _print_page_error(page):
